@@ -1,0 +1,17 @@
+The ID has been freezed!
+The ID has been freezed!
+Check the Money.
+Check the Money.
+Draw money 0.000000 error!Check the Money.
+Draw money 0.000000 error!Check the Money.
+Check the Money.
+Draw money 0.000000 error!
+Check the Money.
+Draw money 0.000000 error!
+Check the Money.
+Check the Money.
+Check the Money.
+Draw money 1.00 success!
+Now the money is: -99.00.Check the Money.
+Draw money 3.00 success!
+Now the money is: 97.00.
