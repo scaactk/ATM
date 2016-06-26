@@ -8,38 +8,40 @@ struct User{
 	int ID;
 	int Pw;
 	float Mon;
+	int Statue;
 };
 
 int get_id();
-int check_id(FILE * fp,int id,struct User det[]);
+int check_id(int id,struct User det[]);
+int get_x(int id,struct User det[]);
 int get_pw();
-int check_pw(int pw,struct User det[],int temp);
-void menu(FILE *fp,struct User det[],int i);
-void find(FILE *fp,struct User det[],int i)
-void out(FILE *fp,struct User det[],int i);
-void in(FILE *fp,struct User det[],int i);
-void change_pw(FILE *fp,struct User det[],int i);
-void write_txt(FILE *fp,struct User det[],int i);
-void append(FILE *data);
+int check_pw(int len,int pw,struct User det[],int temp);
+int find_Money(int len,struct User det[],int i);
+int out_Money(int len,struct User det[],int i);
+int in_Money(int len,struct User det[],int i);
+void menu(int len,struct User det[],int i);
+void change_pw(int len,struct User det[],int i);
+void write_txt(int len,struct User det[]);
 
 
 int main()
 {
-	FILE * fp = fopen("sql.txt","r+b");
-	FILE * data = fopen("record.txt","a+b");
-	//struct User *pArr;
-	struct User det[100];
-	int id,i;
+	struct User det[100];	
+	int id,len,pw,x;
 	
 	id = get_id();
 	
-	i = check_id(fp,id,det);
+	len = check_id(id,det);
 	
-	menu(fp,det,i);
-	//find(fp,det,i);
-	//out(fp,det,i);
-	//in(fp,det,i);
-	//change_pw(fp,det,i);
+	x = get_x(id,det);
+	
+	pw = get_pw();
+	
+	check_pw(len,pw,det,x);
+	
+	menu(len,det,x);
+	
+	return 0;
 } 
 
 int get_id()
@@ -50,30 +52,50 @@ int get_id()
 	return id;
 }
 
-int check_id(FILE *fp,int id,struct User det[])
+int check_id(int id,struct User det[])
 {
+	FILE * fp = fopen("sql.txt","r");
+	FILE * data = fopen("record.txt","a+");
 	int temp = -1;
-	int i = 0;
-	while(fscanf(fp,"%d,%d,%f",det[i].ID,det[i].Pw,det[i].Mon)>0)
+	int count = 0;
+	while(fscanf(fp,"%d,%d,%f,%d",&det[count].ID,&det[count].Pw,&det[count].Mon,&det[count].Statue)>0)
 	{
-		if(id == det[i].ID)
+		if(id == det[count].ID)
 		{
-			temp = i;
+			temp = count;
 		}
-		i++;
+		count++;
 	}
-	fclose(fp);
 	if(temp == -1)
 	{
-		printf("Without this User in sql");
+		printf("\nWithout this User in SQL!\n");
 		exit(-1);
 	}
 	else
 	{
-		int pw;
-		pw = get_pw(); 
-		//return pw;
-		check_pw(pw,det,temp);
+		fprintf(data,"%d try to sign in the system.\r\n",det[temp].ID);
+		if(det[temp].Statue != 0)
+		{
+			printf("\nThis account was freezed!\n");
+			fprintf(data,"%d was stopped to sign in the system.\r\n",det[temp].ID);
+			exit(-3);
+		}
+		return count;
+	}	
+}
+
+int get_x(int id,struct User det[])
+{
+	int temp;
+	int count = 0;
+	while(1)
+	{
+		if(id == det[count].ID)
+		{
+			temp = count;
+			return temp;
+		}
+		count++;
 	}
 }
 
@@ -87,182 +109,147 @@ int get_pw()
 		pin[i] = getch();
 		t += (pin[i]-'0')*pow(10,5-i);
 		printf("*");
-		getchar();
 	}
+	getch();
 	return t;
 }
 
-int check_pw(int pw,struct User det[],int temp)
+int check_pw(int len,int pw,struct User det[],int temp)
 {
-	int count = 0;
+	FILE * data = fopen("record.txt","a+");
+	int count_Error = 0;
 	while(1)
 	{
 		if(pw != det[temp].Pw)
 		{
-			printf("Error in password!\n");
-			pw = get_pw();
-			count++;
-			if(count>2)
+			printf("\nError in password!\n");
+			count_Error++;
+			fprintf(data,"%d password error in %d times.\r\n",det[temp].ID,count_Error);
+			if(count_Error>2)
 			{
-				printf("The count has been frazed!\n");
+				printf("\nThe account has been freezed!\n");
+				fprintf(data,"%d The count has been frazed!\r\n",det[temp].ID);
+				det[temp].Statue = 1;
+				write_txt(len,det);
 				exit(-2);
 			}
+			pw = get_pw();
 		}
-		if(pw = det[temp].Pw)
+		if(pw == det[temp].Pw)
 		{
-			printf("Password is true ,continue please!\n");
+			printf("\nPassword is true ,continue please!\n");
+			fprintf(data,"%d sign in the system successed.\r\n",det[temp].ID);
+			break;
 		}
-	}
-	return temp;	
+	}	
 }
 
-void menu(FILE *fp,struct User det[],int i)
+void menu(int len,struct User det[],int i)
 {
-	printf("\n1.Check the money.\n2.Draw.\n3.Deposit.\n4.Change the password.\n5.Quit.");
+	printf("\n1.Check the money.\n2.Draw.\n3.Deposit.\n4.Change the password.\n5.Quit.\n");
 	int choose;
 	scanf("%d",&choose);
 	if(choose>0&&choose<9)
 	{
-		if(choose==1) find(fp,det,i); 
-		if(choose==2) out(fp,det,i); 
-		if(choose==3) in(fp,det,i); 
-		if(choose==4) change_pw(fp,det,i); 
-		if(choose==5) printf("Good Bye!"); 
+		if(choose==1) find_Money(len,det,i); 
+		if(choose==2) out_Money(len,det,i); 
+		if(choose==3) in_Money(len,det,i); 
+		if(choose==4) change_pw(len,det,i); 
+		if(choose==5) {printf("\nGood Bye!\n"); exit(0);}
 	}
-	else menu(fp,det,i);
+	else {
+	printf("Not the correct choose!\n"); 
+	menu(len,det,i);
+	}
 }
 
-void find(FILE *fp,struct User det[],int i)
+int find_Money(int len,struct User det[],int i)
 {
-	printf("The money is %d.\n",det[i].Mon);
-	menu(fp,det,i);
+	FILE * data = fopen("record.txt","a+");
+	printf("\nThe money is %.2f\n",det[i].Mon);
+	fprintf(data,"%d check the money.\r\n",det[i].ID);
+	menu(len,det,i);
 }
 
-void write_txt(FILE *fp,struct User det[])
+void write_txt(int len,struct User det[])
 {
-	int i = 0;
-	while(fprintf(fp,"%d,%d,%f\r\n",det[i].ID,det[i].Pw,det[i].Mon)>0)
+	FILE * fp = fopen("sql.txt","w");
+	for(int i =0;i<len;i++)
 	{
-		i++;
+		fprintf(fp,"%d,%d,%.2f,%d\r\n",det[i].ID,det[i].Pw,det[i].Mon,det[i].Statue);
 	}
 	fclose(fp);
 }
 
-void out(FILE *fp,struct User det[],int i)
+int out_Money(int len,struct User det[],int i)
 {
+	FILE * data = fopen("record.txt","a+");
 	int temp;
-	printf("Please input the number of money you wang to draw.\n");
+	printf("\nPlease input the number of money you want to draw.\n");
 	scanf("%d",&temp);
-	det[i].Mon -= temp;
-	write_txt(fp,det);
+	fflush(stdin);
+	if(temp>det[i].Mon)
+	{
+		printf("\nWithout enough money\n");
+		fprintf(data,"%d draw money %d error.\r\n",det[i].ID,temp);
+	}
+	else
+	{
+		det[i].Mon -= temp;
+		write_txt(len,det);
+		fprintf(data,"%d draw money %d successed.\r\n",det[i].ID,temp);	
+	}
+	menu(len,det,i);
 }
-void in(FILE *fp,struct User det[],int i)
+
+int in_Money(int len,struct User det[],int i)
 {
-	
+	FILE * data = fopen("record.txt","a+");
+	int temp;
+	printf("\nPlease input the number of money you want to deposit.\n");
+	scanf("%d",&temp);
+	fflush(stdin);
+	det[i].Mon += temp;
+	write_txt(len,det);
+	fprintf(data,"%d deposit money %d successed.\r\n",det[i].ID,temp);	
+	menu(len,det,i);
 }
 
-void change_pw(FILE *fp,struct User det[],int i)
+void change_pw(int len,struct User det[],int t)
 {
+	FILE * data = fopen("record.txt","a+");
+	char pin1[10];
+	char pin2[10];
+	int t1 = 0;
+	int t2 = 0;
+	printf("\nPlease input the NEW password! \n");
+	for(int i =0;i<6;i++)
+	{
+		pin1[i] = getch();
+		t1 += (pin1[i]-'0')*pow(10,5-i);
+		printf("*");
+	}
+	getch();
 	
-}#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<malloc.h>
-#include<iostream>
-#include<conio.h>
-#include<math.h>
-
-int main() {
-	FILE * fp = fopen("sql.txt","r+b");
-	FILE * data = fopen("record.txt","ab");
-	int input_id,i,j;
-	int pin[10];
-	char buff[100],buf[100];
-	char * temp1;//sql中的ID 
-	char * temp2;//sql中的Pw
-	char * temp3;//sql中的Mon
-	bool flag = false;
-	char * id_addr;//临时变量记录buf指针位置
-	char cho1,cho2,cho3;
-	char * temp4;//临时的存取款金额
-
-	//获取输入的ID和Pw
-	printf("请输入ID: \n");
-	scanf("%d",&input_id);
-
-
-	//判断账户和密码
-	while(fgets(buf,100,fp)!=NULL) { //循环遍历每一行
-		id_addr = buf;
-		strcpy(buff,buf);
-		temp1 = strtok(buf,",");//循环分离出字符串中每个ID
-		if(input_id == atoi(temp1)) { //查找特定ID
-			int count = 0;
-			temp2 = strtok(buff+8,",");//+8和+9结果相同
-			while(1) {
-				printf("\n请输入6位数密码: \n");
-				int t = 0;
-				for(i=0; i<6; i++) {
-					pin[i] = getch();
-					t += ((pin[i]-'0')*pow(10,5-i));//转化为数字
-					printf("*");//不明文显示
-				}
-				getch();
-				if(t == atoi(temp2)) {
-					fclose(fp);//关闭文件，避免循环的继续导致所需要的id_addr改变
-					printf("\nPassword is true ,continue please!\n");
-					flag = true;
-					break;
-				} else {
-					count++;
-					printf("密码错误!\n");
-				}
-				if(count>=3) {
-					fclose(fp);
-					printf("\n输入密码错误超过三次,锁定账户");
-					fprintf(data,"The ID has been freezed!\r\n");
-					exit(1);
-				}
-			}
-		}
-		if(!flag) {
-			fclose(fp);
-			printf("此ID尚未注册");
-			exit(2);
-		}
+	printf("\nPlease input the NEW password again! \n");
+	for(int i =0;i<6;i++)
+	{
+		pin2[i] = getch();
+		t2 += (pin2[i]-'0')*pow(10,5-i);
+		printf("*");
 	}
-
-	//查询余额
-	temp3 = strtok(id_addr+15,",");
-	printf("Check the money? Y/N \n");
-	scanf("%c",&cho1);//scanf只读取了一个字符，回车要处理掉
-	while(getchar()!='\n');//吃掉输入y后的回车
-	if(cho1 == 'Y'||'y') {
-		printf("\n余额为: %s\n",temp3);//%c输出结果也相同
-		fprintf(data,"Check the Money.\r\n");
+	getch();
+	if(t1 == t2)
+	{
+		det[t].Pw = t1;
+		write_txt(len,det);
+		printf("\nThe password has been changed!\n");
+		fprintf(data,"%d change password successed.\r\n",det[t].ID);	
 	}
-
-	//存取款
-	printf("Draw the money? Y/N\n");
-	scanf("%c",&cho2);
-	while(getchar()!='\n');
-	if(cho2 == 'Y'||'y') {
-		float draw_money;
-		printf("请输入要取款的金额: \n");
-		scanf("%f",&draw_money);
-		while(getchar()!='\n');
-		if(atof(temp3)<draw_money||draw_money<=0) {
-			printf("Draw money error\n");
-			fprintf(data,"Draw money %.2f error!\r\n",draw_money);
-		} else {
-			float c = -draw_money + atof(temp3);
-			//fwrite(&c,32,1,temp3);
-			printf("余额为: %.2f\n",c);
-			fprintf(data,"Draw money %.2f success!\r\n",draw_money);
-			fprintf(data,"Now the money is: %.2f.",c);
-		}
+	else
+	{
+		printf("\nError in change password! \n");
+		fprintf(data,"%d change password error.\r\n",det[t].ID);
 	}
-
-
-	return 0;
+	menu(len,det,t);	
 }
