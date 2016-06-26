@@ -1,4 +1,170 @@
-#include<stdio.h>
+﻿#include<stdio.h>
+#include<string.h>
+#include<conio.h>
+#include<math.h>
+#include<stdlib.h>
+
+struct User{
+	int ID;
+	int Pw;
+	float Mon;
+};
+
+int get_id();
+int check_id(FILE * fp,int id,struct User det[]);
+int get_pw();
+int check_pw(int pw,struct User det[],int temp);
+void menu(FILE *fp,struct User det[],int i);
+void find(FILE *fp,struct User det[],int i)
+void out(FILE *fp,struct User det[],int i);
+void in(FILE *fp,struct User det[],int i);
+void change_pw(FILE *fp,struct User det[],int i);
+void write_txt(FILE *fp,struct User det[],int i);
+void append(FILE *data);
+
+
+int main()
+{
+	FILE * fp = fopen("sql.txt","r+b");
+	FILE * data = fopen("record.txt","a+b");
+	//struct User *pArr;
+	struct User det[100];
+	int id,i;
+	
+	id = get_id();
+	
+	i = check_id(fp,id,det);
+	
+	menu(fp,det,i);
+	//find(fp,det,i);
+	//out(fp,det,i);
+	//in(fp,det,i);
+	//change_pw(fp,det,i);
+} 
+
+int get_id()
+{
+	int id;
+	printf("Please input the ID: \n");
+	scanf("%d",&id);
+	return id;
+}
+
+int check_id(FILE *fp,int id,struct User det[])
+{
+	int temp = -1;
+	int i = 0;
+	while(fscanf(fp,"%d,%d,%f",det[i].ID,det[i].Pw,det[i].Mon)>0)
+	{
+		if(id == det[i].ID)
+		{
+			temp = i;
+		}
+		i++;
+	}
+	fclose(fp);
+	if(temp == -1)
+	{
+		printf("Without this User in sql");
+		exit(-1);
+	}
+	else
+	{
+		int pw;
+		pw = get_pw(); 
+		//return pw;
+		check_pw(pw,det,temp);
+	}
+}
+
+int get_pw()
+{
+	char pin[10];
+	int t = 0;
+	printf("Please input the password: \n");
+	for(int i =0;i<6;i++)
+	{
+		pin[i] = getch();
+		t += (pin[i]-'0')*pow(10,5-i);
+		printf("*");
+		getchar();
+	}
+	return t;
+}
+
+int check_pw(int pw,struct User det[],int temp)
+{
+	int count = 0;
+	while(1)
+	{
+		if(pw != det[temp].Pw)
+		{
+			printf("Error in password!\n");
+			pw = get_pw();
+			count++;
+			if(count>2)
+			{
+				printf("The count has been frazed!\n");
+				exit(-2);
+			}
+		}
+		if(pw = det[temp].Pw)
+		{
+			printf("Password is true ,continue please!\n");
+		}
+	}
+	return temp;	
+}
+
+void menu(FILE *fp,struct User det[],int i)
+{
+	printf("\n1.Check the money.\n2.Draw.\n3.Deposit.\n4.Change the password.\n5.Quit.");
+	int choose;
+	scanf("%d",&choose);
+	if(choose>0&&choose<9)
+	{
+		if(choose==1) find(fp,det,i); 
+		if(choose==2) out(fp,det,i); 
+		if(choose==3) in(fp,det,i); 
+		if(choose==4) change_pw(fp,det,i); 
+		if(choose==5) printf("Good Bye!"); 
+	}
+	else menu(fp,det,i);
+}
+
+void find(FILE *fp,struct User det[],int i)
+{
+	printf("The money is %d.\n",det[i].Mon);
+	menu(fp,det,i);
+}
+
+void write_txt(FILE *fp,struct User det[])
+{
+	int i = 0;
+	while(fprintf(fp,"%d,%d,%f\r\n",det[i].ID,det[i].Pw,det[i].Mon)>0)
+	{
+		i++;
+	}
+	fclose(fp);
+}
+
+void out(FILE *fp,struct User det[],int i)
+{
+	int temp;
+	printf("Please input the number of money you wang to draw.\n");
+	scanf("%d",&temp);
+	det[i].Mon -= temp;
+	write_txt(fp,det);
+}
+void in(FILE *fp,struct User det[],int i)
+{
+	
+}
+
+void change_pw(FILE *fp,struct User det[],int i)
+{
+	
+}#include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<malloc.h>
